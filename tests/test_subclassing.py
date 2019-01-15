@@ -6,11 +6,11 @@
     Test that certain behavior of flask can be customized by
     subclasses.
 
-    :copyright: (c) 2015 by Armin Ronacher.
+    :copyright: © 2010 by the Pallets team.
     :license: BSD, see LICENSE for more details.
 """
+
 import flask
-from logging import StreamHandler
 
 from flask._compat import StringIO
 
@@ -22,16 +22,12 @@ def test_suppressed_exception_logging():
 
     out = StringIO()
     app = SuppressedFlask(__name__)
-    app.logger_name = 'flask_tests/test_suppressed_exception_logging'
-    app.logger.addHandler(StreamHandler(out))
 
     @app.route('/')
     def index():
-        1 // 0
+        raise Exception('test')
 
-    rv = app.test_client().get('/')
+    rv = app.test_client().get('/', errors_stream=out)
     assert rv.status_code == 500
     assert b'Internal Server Error' in rv.data
-
-    err = out.getvalue()
-    assert err == ''
+    assert not out.getvalue()

@@ -9,7 +9,9 @@ application.  Flask provides a really simple way to give feedback to a
 user with the flashing system.  The flashing system basically makes it
 possible to record a message at the end of a request and access it next
 request and only next request.  This is usually combined with a layout
-template that does this.
+template that does this. Note that browsers and sometimes web servers enforce
+a limit on cookie sizes. This means that flashing messages that are too
+large for session cookies causes message flashing to fail silently.
 
 Simple Flashing
 ---------------
@@ -20,7 +22,7 @@ So here is a full example::
          request, url_for
 
     app = Flask(__name__)
-    app.secret_key = 'some_secret'
+    app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
     @app.route('/')
     def index():
@@ -76,7 +78,7 @@ And here is the :file:`login.html` template which also inherits from
      {% if error %}
        <p class=error><strong>Error:</strong> {{ error }}
      {% endif %}
-     <form action="" method=post>
+     <form method=post>
        <dl>
          <dt>Username:
          <dd><input type=text name=username value="{{

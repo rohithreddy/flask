@@ -34,10 +34,12 @@ Snippet Archives <http://flask.pocoo.org/snippets/>`_.
    jquery
    errorpages
    lazyloading
-   mongokit
+   mongoengine
    favicon
    streaming
    deferredcallbacks
    methodoverrides
    requestchecksum
    celery
+   subclassing
+   singlepageapplications

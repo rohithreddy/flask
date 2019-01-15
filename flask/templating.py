@@ -5,9 +5,10 @@
 
     Implements the bridge to Jinja2.
 
-    :copyright: (c) 2015 by Armin Ronacher.
+    :copyright: © 2010 by the Pallets team.
     :license: BSD, see LICENSE for more details.
 """
+
 from jinja2 import BaseLoader, Environment as BaseEnvironment, \
      TemplateNotFound
 
@@ -52,27 +53,36 @@ class DispatchingJinjaLoader(BaseLoader):
         self.app = app
 
     def get_source(self, environment, template):
-        explain = self.app.config['EXPLAIN_TEMPLATE_LOADING']
+        if self.app.config['EXPLAIN_TEMPLATE_LOADING']:
+            return self._get_source_explained(environment, template)
+        return self._get_source_fast(environment, template)
+
+    def _get_source_explained(self, environment, template):
         attempts = []
-        tmplrv = None
+        trv = None
 
         for srcobj, loader in self._iter_loaders(template):
             try:
                 rv = loader.get_source(environment, template)
-                if tmplrv is None:
-                    tmplrv = rv
-                if not explain:
-                    break
+                if trv is None:
+                    trv = rv
             except TemplateNotFound:
                 rv = None
             attempts.append((loader, srcobj, rv))
 
-        if explain:
-            from .debughelpers import explain_template_loading_attempts
-            explain_template_loading_attempts(self.app, template, attempts)
+        from .debughelpers import explain_template_loading_attempts
+        explain_template_loading_attempts(self.app, template, attempts)
 
-        if tmplrv is not None:
-            return tmplrv
+        if trv is not None:
+            return trv
+        raise TemplateNotFound(template)
+
+    def _get_source_fast(self, environment, template):
+        for srcobj, loader in self._iter_loaders(template):
+            try:
+                return loader.get_source(environment, template)
+            except TemplateNotFound:
+                continue
         raise TemplateNotFound(template)
 
     def _iter_loaders(self, template):

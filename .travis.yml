@@ -1,46 +1,57 @@
-sudo: false
+os: linux
+dist: xenial
 language: python
-
 python:
-  - "2.6"
-  - "2.7"
-  - "pypy"
-  - "3.3"
-  - "3.4"
+  - "3.7"
+  - "3.6"
   - "3.5"
-
-env:
-  - REQUIREMENTS=lowest
-  - REQUIREMENTS=release
-  - REQUIREMENTS=devel
+  - "3.4"
+  - "2.7"
+  - nightly
+  - pypy3.5-6.0
+env: TOXENV=py,codecov
 
 matrix:
-  exclude:
-    # Python 3 support currently does not work with lowest requirements
-    - python: "3.3"
-      env: REQUIREMENTS=lowest
-    - python: "3.4"
-      env: REQUIREMENTS=lowest
-    - python: "3.5"
-      env: REQUIREMENTS=lowest
+  include:
+    - env: TOXENV=docs-html
+    - env: TOXENV=devel,lowest,codecov
+# disabled because before_install is too slow
+#    - os: osx
+#      language: generic
+#      env: TOXENV=py3,codecov
+#      cache:
+#        directories:
+#          - $HOME/Library/Caches/Homebrew
+#          - $HOME/Library/Caches/pip
+  allow_failures:
+    - python: nightly
+    - python: pypy3.5-6.0
+    - os: osx
+  fast_finish: true
 
+before_install:
+  - |
+    if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+      brew upgrade python
+      export PATH="/usr/local/opt/python/libexec/bin:${PATH}"
+    fi
 
 install:
-    - pip install tox
+  - pip install tox
 
 script:
-    - tox -e py-$REQUIREMENTS
+  - tox
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.cache/pre-commit
 
 branches:
-  except:
-    - website
+  only:
+    - master
+    - /^\d+(\.\d+)*-maintenance$/
+    - /^\d+(\.\d+)*(\.x)?$/
 
 notifications:
   email: false
-  irc:
-    channels:
-      - "chat.freenode.net#pocoo"
-    on_success: change
-    on_failure: always
-    use_notice: true
-    skip_join: true
